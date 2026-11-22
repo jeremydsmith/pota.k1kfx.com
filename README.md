@@ -11,6 +11,8 @@ and stored as JSON in `/data`.
 | --- | --- |
 | `index.html`, `img/` | The Parks on the Air hub page (uses the shared K1KFX kit from k1kfx.com/kit/) |
 | `parks/` (`index.html`, `css/`, `js/app.js`) | The Rare Parks Finder map |
+| `map/` (`index.html`, `css/`, `js/app.js`, `data/states.json`, `sw.js`) | The States Worked Map |
+| `scripts/build-map.mjs`, `scripts/make-icon.mjs` | One-time generators for the map shapes and its icons |
 | `config.json` | Home location, list of states, API settings, repo name |
 | `scripts/update-data.mjs` | Fetches every state and writes `/data` |
 | `scripts/serve.mjs` | Optional local preview server |
@@ -119,6 +121,65 @@ uploaded. **Clear** forgets it. Do the same on your phone if you want it there.
 
 `.gitignore` blocks `*.csv`, `*.ods` and similar so a personal export can't be
 committed by accident. Keep those files outside this folder anyway.
+
+## States Worked Map (`/map/`)
+
+A full-screen tool for an activation: kids tap each state we reach and it
+turns green. Built for an 11" tablet or a laptop in landscape.
+
+- **Add:** tap a state. The tiny Northeast states (VT, NH, MA, RI, CT, NJ, DE,
+  MD, DC) also have big boxes off the East Coast.
+- **Remove:** press and hold a green state (right-click on a laptop), then
+  confirm.
+- **Find a state** (magnifier button): type a name or code. The state flashes
+  yellow three times and keeps a yellow outline until someone taps it. Finding
+  never adds a state by itself.
+  Tapping the map while the Find box is open only closes the box.
+- **Past maps** (switch under the count): states reached on any earlier map
+  show in light grey. Today's green always wins, and the count is today's
+  states only. Switch it off and those states are white again. The switch
+  appears once a map has been finished with **Start fresh** (or loaded from a
+  file), and each browser remembers its setting.
+- **Rewards** pop up at 5, 10, 15 … 50 states and at all 51, once per map.
+- **Menu:** Start fresh, Save to file, Load file, Full screen.
+- **Keyboard:** Tab to a state, Enter adds it, Delete asks to remove it.
+
+### Saving
+
+Everything is kept in that browser's local storage after every tap, so a
+reload brings the map back. It does not sync between devices, and clearing the
+browser's site data erases it. **Start fresh** moves the current map into the
+list of past maps, which is what the grey **Past maps** layer draws from.
+**Save to file** downloads a `states-YYYY-MM-DD.json` file with the
+current map and all past maps; **Load file** brings one back. The Past maps
+switch setting is stored separately (`k1kfxStates.showPast`) and is not part
+of the file.
+
+### Offline and home screen
+
+`map/sw.js` caches the page, the map data, the K1KFX kit and its fonts after the
+first visit, so the map opens with no signal. On Android Chrome, open the map
+and choose **Add to Home screen**: it then opens full screen like an app. After
+changing files in `map/`, a device that already has the page shows the update
+on its second load (the first load comes from the cache). If you add or rename
+files, add them to `FILES` in `sw.js`, and bump `VERSION` with any change.
+
+### Where the map comes from
+
+[us-atlas 3.0.1](https://github.com/topojson/us-atlas) `states-albers-10m.json`
+(ISC license, Mike Bostock; shapes from US Census Bureau cartographic boundary
+files, public domain). It is already projected with Alaska and Hawaii in
+insets. `node scripts/build-map.mjs` downloads it once, turns each state into
+an SVG path, places each label, and writes
+`map/data/states.json`, which is committed. A label goes at the state's
+visual middle (the area centroid of its biggest piece). Where the two letters
+would not fit there with a little room to spare (Florida, Louisiana, Kentucky,
+Michigan, Hawaii), it slides toward the roomiest spot in the state and stops
+as soon as it fits; West Virginia's also shrinks a little. A few far western Aleutian islands
+that fall off the left edge are left out. Run it again only to change the
+shapes or labels: `LABEL_OVERRIDE` in the script moves a label by hand, and
+`node scripts/build-map.mjs --report` lists where every label landed.
+`node scripts/make-icon.mjs` redraws the home-screen icons.
 
 ## Preview locally
 

@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>States Worked Map</title>
+<meta name="description" content="Tap each state we reach during a Parks on the Air activation and watch the map fill in.">
+<meta name="theme-color" content="#ececec">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="https://k1kfx.com/kit/k1kfx.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<main>
+  <svg id="map" viewBox="-16 0 1122 620" preserveAspectRatio="xMidYMid meet" role="group" aria-label="Map of the United States. Tap a state to color it in.">
+    <g id="frames"></g>
+    <g id="leaders"></g>
+    <g id="states"></g>
+    <g id="boxes"></g>
+    <g id="labels"></g>
+    <path id="foundRing" class="found-ring" d=""/>
+    <path id="focusRing" class="focus-ring" d=""/>
+    <g id="count" aria-live="polite">
+      <text id="countNum" x="1100" y="500" text-anchor="end"></text>
+      <text id="countWord" x="1100" y="545" text-anchor="end"></text>
+    </g>
+    <g id="pastToggle" class="past-toggle" role="switch" aria-checked="true" aria-label="Show states from past maps in grey" tabindex="0" hidden>
+      <title>Show states from past maps in grey</title>
+      <rect class="pill" x="880" y="562" width="220" height="50" rx="25"/>
+      <text x="1018" y="588">Past maps</text>
+      <rect class="track" x="1028" y="573" width="60" height="28" rx="14"/>
+      <circle class="knob" cx="1042" cy="587" r="9"/>
+    </g>
+  </svg>
+</main>
+
+<div class="corner">
+  <button type="button" id="findBtn" class="round" aria-label="Find a state">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>
+  </button>
+  <button type="button" id="menuBtn" class="round" aria-label="Menu">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+  </button>
+</div>
+
+<div id="find" class="find" hidden>
+  <div class="find-row">
+    <input id="findInput" type="text" placeholder="Find a state: type a name or code" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" aria-label="Find a state">
+    <button type="button" id="findClose" class="plain">Close</button>
+  </div>
+  <div id="findResults" class="find-results"></div>
+</div>
+
+<div id="ring" class="ring" hidden><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="44"/></svg></div>
+<div id="toast" class="toast" role="status" hidden></div>
+<div id="reward" class="reward" aria-live="assertive" hidden><b id="rewardBig"></b><span id="rewardSmall"></span></div>
+<div id="phoneNote" class="phone-note" hidden>Best on a tablet or laptop. <button type="button" id="phoneNoteClose" class="plain">OK</button></div>
+
+<dialog id="menu" class="sheet">
+  <h2>Menu</h2>
+  <button type="button" data-act="fresh">Start fresh</button>
+  <button type="button" data-act="save">Save to file</button>
+  <button type="button" data-act="load">Load file</button>
+  <button type="button" data-act="full" id="fullBtn">Full screen</button>
+  <p class="hint">Saved in this browser only. Use <b>Save to file</b> to keep a copy.</p>
+  <button type="button" data-act="close" class="plain">Close</button>
+</dialog>
+
+<dialog id="ask" class="sheet ask">
+  <h2 id="askTitle"></h2>
+  <p id="askText"></p>
+  <div class="ask-buttons">
+    <button type="button" id="askNo" class="plain">Keep</button>
+    <button type="button" id="askYes" class="danger">Remove</button>
+  </div>
+</dialog>
+
+<input type="file" id="fileInput" accept=".json,application/json" hidden>
+
+<script src="js/app.js"></script>
+</body>
+</html>
