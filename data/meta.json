@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-21T16:47:11.184Z",
+  "generatedAt": "2026-11-22T06:16:20.393Z",
   "source": "https://api.pota.app/location/parks/{code}",
   "states": [
     "US-NE",
@@ -10,7 +10,17 @@
     "US-MN",
     "US-OK",
     "US-IL",
-    "US-CO"
+    "US-CO",
+    "US-AR",
+    "US-WI",
+    "US-TX",
+    "US-ND",
+    "US-WY",
+    "US-NM",
+    "US-MT",
+    "US-IN",
+    "US-KY",
+    "US-TN"
   ],
   "parksPerState": {
     "US-NE": 201,
@@ -21,7 +31,17 @@
     "US-MN": 323,
     "US-OK": 205,
     "US-IL": 219,
-    "US-CO": 276
+    "US-CO": 276,
+    "US-AR": 306,
+    "US-WI": 348,
+    "US-TX": 222,
+    "US-ND": 155,
+    "US-WY": 294,
+    "US-NM": 129,
+    "US-MT": 254,
+    "US-IN": 229,
+    "US-KY": 193,
+    "US-TN": 281
   },
-  "totalParks": 2204
+  "totalParks": 4567
 }

@@ -11,7 +11,17 @@
     { "code": "US-MN", "name": "Minnesota" },
     { "code": "US-OK", "name": "Oklahoma" },
     { "code": "US-IL", "name": "Illinois" },
-    { "code": "US-CO", "name": "Colorado" }
+    { "code": "US-CO", "name": "Colorado" },
+    { "code": "US-AR", "name": "Arkansas" },
+    { "code": "US-WI", "name": "Wisconsin" },
+    { "code": "US-TX", "name": "Texas" },
+    { "code": "US-ND", "name": "North Dakota" },
+    { "code": "US-WY", "name": "Wyoming" },
+    { "code": "US-NM", "name": "New Mexico" },
+    { "code": "US-MT", "name": "Montana" },
+    { "code": "US-IN", "name": "Indiana" },
+    { "code": "US-KY", "name": "Kentucky" },
+    { "code": "US-TN", "name": "Tennessee" }
   ],
   "api": {
     "parksByLocation": "https://api.pota.app/location/parks/{code}",

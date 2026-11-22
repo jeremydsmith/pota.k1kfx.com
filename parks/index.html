@@ -38,8 +38,12 @@
       <input type="search" id="search" placeholder="Search name or reference" aria-label="Search by name or reference">
 
       <fieldset>
-        <legend>States</legend>
+        <legend>States <span id="statesCount"></span></legend>
         <div id="states" class="chips"></div>
+        <div class="chip-actions">
+          <button type="button" id="statesAll">All</button>
+          <button type="button" id="statesNone">None</button>
+        </div>
       </fieldset>
 
       <label class="row">Park type

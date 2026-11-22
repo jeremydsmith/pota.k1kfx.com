@@ -5,7 +5,7 @@
 
   const SETTINGS_KEY = 'potaRare.settings.v1';
   const MINE_KEY = 'potaRare.myActivations.v1';
-  const RINGS_MI = [50, 100, 200, 300, 400];
+  const RINGS_MI = [50, 100, 200, 300, 400, 500];
   const M_PER_MI = 1609.344;
   const UNCLUSTER_ZOOM = 10;
 
@@ -146,7 +146,10 @@
 
   // ---------- map ----------
   function initMap() {
-    map = L.map('map', { zoomControl: true, worldCopyJump: true }).setView([settings.home.lat, settings.home.lon], 7);
+    // Quarter-step zoom so "fit to the distance slider" fills the map instead of
+    // jumping a whole level out (at 500 mi a whole level wastes ~40% of the height).
+    // The +/- buttons and the wheel still move a whole level.
+    map = L.map('map', { zoomControl: true, worldCopyJump: true, zoomSnap: 0.25, zoomDelta: 1, wheelPxPerZoomLevel: 120 }).setView([settings.home.lat, settings.home.lon], 7);
     // Standard OSM tiles: attribution shown, no prefetching or bulk download,
     // browser caching left on, per https://operations.osmfoundation.org/policies/tiles/
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -458,12 +461,26 @@
     $('search').value = settings.search;
     $('search').addEventListener('input', (e) => { settings.search = e.target.value; saveSettings(); queueRender(); });
 
-    $('states').innerHTML = config.states.map((s) =>
-      `<label title="${esc(s.name)}"><input type="checkbox" value="${esc(s.code)}"${settings.states.includes(s.code) ? ' checked' : ''}> ${esc(s.code.replace(/^US-/, ''))}</label>`).join('');
-    $('states').addEventListener('change', () => {
+    // State chips, alphabetical by postal code so a state is easy to find
+    // whatever the home location is. Full name and park count on hover.
+    const perState = {};
+    for (const p of parks) for (const s of p.locationDesc.split(',')) perState[s] = (perState[s] || 0) + 1;
+    const sortedStates = [...config.states].sort((a, b) => a.code.localeCompare(b.code));
+    $('states').innerHTML = sortedStates.map((s) =>
+      `<label class="chip" title="${esc(s.name)}: ${perState[s.code] || 0} parks"><input type="checkbox" value="${esc(s.code)}"${settings.states.includes(s.code) ? ' checked' : ''}><span>${esc(s.code.replace(/^US-/, ''))}</span></label>`).join('');
+    const statesChanged = () => {
       settings.states = [...document.querySelectorAll('#states input:checked')].map((i) => i.value);
+      $('statesCount').textContent = `${settings.states.length} of ${config.states.length}`;
       saveSettings(); render();
-    });
+    };
+    $('states').addEventListener('change', statesChanged);
+    for (const [id, on] of [['statesAll', true], ['statesNone', false]]) {
+      $(id).addEventListener('click', () => {
+        document.querySelectorAll('#states input').forEach((i) => { i.checked = on; });
+        statesChanged();
+      });
+    }
+    $('statesCount').textContent = `${settings.states.length} of ${config.states.length}`;
 
     const counts = {};
     for (const p of parks) counts[p.type] = (counts[p.type] || 0) + 1;
