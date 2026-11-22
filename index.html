@@ -1,112 +1,145 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="light dark">
-<title>POTA Rare Parks</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" crossorigin="">
-<link rel="stylesheet" href="css/style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>K1KFX · Parks on the Air</title>
+  <meta name="description" content="K1KFX Parks on the Air: portable amateur radio from parks around Lincoln, Nebraska, a rare parks finder, and a map of the states we reach.">
+  <link rel="stylesheet" href="https://k1kfx.com/kit/k1kfx.css">
+  <script src="https://k1kfx.com/kit/k1kfx.js" defer></script>
+  <style>
+    .hero { padding: 56px 0 48px; display: grid; gap: 24px 64px; grid-template-columns: 1fr; align-items: end; }
+    @media (min-width: 860px) { .hero { grid-template-columns: 1.1fr 1fr; } }
+    .hero h1 { font-size: clamp(48px, 8vw, 104px); margin-top: 16px; }
+    .hero h1 .k-serif { color: var(--accent-text); }
+    .hero p { color: var(--muted); font-size: 19px; }
+    .kicker { font-size: 14px; }
+
+    figure.setup { margin-bottom: 96px; }
+    figure.setup .k-photo { aspect-ratio: 16 / 9; }
+    figure.setup figcaption { margin-top: 12px; color: var(--muted); font-size: 15px; }
+
+    .head { display: grid; gap: 12px 64px; grid-template-columns: 1fr; margin-bottom: 40px; }
+    @media (min-width: 860px) { .head.two { grid-template-columns: 1fr 1fr; align-items: end; } }
+    .head h2 { margin: 8px 0 0; }
+    .head p { color: var(--muted); }
+
+    .terms { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+    .terms .k-card { padding: 28px; }
+    .terms h3 { font-size: 22px; }
+    .terms p { color: var(--muted); font-size: 15px; }
+
+    ol.steps { list-style: none; counter-reset: step; display: grid; gap: 0; border-top: 1px solid var(--line); }
+    ol.steps li {
+      counter-increment: step;
+      display: grid; grid-template-columns: 56px 1fr; gap: 4px 16px;
+      padding: 24px 0; border-bottom: 1px solid var(--line);
+    }
+    @media (min-width: 860px) { ol.steps li { grid-template-columns: 80px 260px 1fr; align-items: baseline; } }
+    ol.steps li::before { content: "0" counter(step); font-family: var(--font-mono); font-size: 13px; color: var(--accent-text); grid-row: span 2; }
+    @media (min-width: 860px) { ol.steps li::before { grid-row: auto; } }
+    ol.steps b { font-family: var(--font-display); font-weight: normal; font-size: 20px; letter-spacing: -0.01em; }
+    ol.steps span { color: var(--muted); }
+
+    .tools { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+    .tool { display: grid; grid-template-rows: auto 1fr auto; gap: 28px; padding: 32px; min-height: 260px; }
+    .tool h3 { font-size: clamp(26px, 2.6vw, 32px); margin: 0 0 10px; }
+    .tool p { color: var(--muted); font-size: 15px; }
+    .tool .go { display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 15px; }
+    .tool .go i {
+      font-style: normal; width: 40px; height: 40px; border-radius: 50%;
+      display: grid; place-items: center; background: var(--ink); color: var(--bg);
+      transition: background .15s, transform .15s;
+    }
+    a.tool:hover .go i { background: var(--accent); color: var(--accent-ink); transform: rotate(-45deg); }
+    .tool.soon { background: transparent; border: 1px dashed var(--line); }
+    .pill { justify-self: start; display: inline-block; border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; font-size: 13px; color: var(--muted); }
+
+    .more { margin-top: 40px; color: var(--muted); }
+  </style>
 </head>
 <body>
-<header class="top">
-  <h1>POTA Rare Parks</h1>
-  <p class="updated">
-    <span id="updated">Loading data…</span>
-    <a id="actionsLink" href="#" target="_blank" rel="noopener" hidden>Refresh via GitHub Actions</a>
-  </p>
-</header>
+  <header data-k1kfx-nav data-current="pota"></header>
 
-<main class="layout">
-  <div id="map" aria-label="Map of parks"></div>
-
-  <aside id="panel">
-    <details id="filters" class="filters">
-      <summary>Filters and settings</summary>
-
-      <label class="slider">
-        <span>Max distance from home: <b id="distVal"></b> mi</span>
-        <input type="range" id="dist" min="25" max="500" step="25" value="200">
-      </label>
-      <label class="slider">
-        <span>Max activations: <b id="actVal"></b></span>
-        <input type="range" id="act" min="0" max="50" step="1" value="10">
-      </label>
-
-      <input type="search" id="search" placeholder="Search name or reference" aria-label="Search by name or reference">
-
-      <fieldset>
-        <legend>States</legend>
-        <div id="states" class="chips"></div>
-      </fieldset>
-
-      <label class="row">Park type
-        <select id="type"><option value="">All types</option></select>
-      </label>
-
-      <label class="check"><input type="checkbox" id="hideMine"> Hide parks I've already activated</label>
-      <label class="check"><input type="checkbox" id="easyOnly"> Only parks with no warnings in the notes</label>
-
-      <div class="legend" aria-label="Legend">
-        <span><i class="dot c0">2</i> 0–3</span>
-        <span><i class="dot c1">5</i> 4–5</span>
-        <span><i class="dot c2">7</i> 6–8</span>
-        <span><i class="dot c3">10</i> 9–12</span>
-        <span><i class="dot c4">20</i> 13+</span>
-        <span><i class="dot c4 mine">1</i> mine</span>
+  <div class="k-wrap">
+    <section class="hero">
+      <div>
+        <div class="k-tag kicker"><span class="dot"></span>Parks on the Air</div>
+        <h1 class="k-display">Radio from <span class="k-serif">the park.</span></h1>
       </div>
+      <p>I set up a portable station in a park and try to reach as many other radio operators as I can, across the country and sometimes around the world. It's science, geography and a picnic all at once.</p>
+    </section>
 
-      <div class="buttons">
-        <button type="button" id="exportCsv">Export CSV</button>
-        <button type="button" id="exportGpx">Export GPX</button>
+    <figure class="setup">
+      <div class="k-photo"><img src="img/pota-setup.jpg" width="1600" height="900" alt="A red car parked beside a picnic table with a radio and a tall portable antenna mast in a park"></div>
+      <figcaption>A typical setup: the radio on a picnic table, a portable mast holding the antenna wires up high, and power from the car.</figcaption>
+    </figure>
+
+    <section class="k-section" aria-labelledby="what">
+      <div class="head two">
+        <div>
+          <div class="k-tag kicker"><span class="dot"></span>What it is</div>
+          <h2 id="what">How POTA works</h2>
+        </div>
+        <p>Parks on the Air is an amateur radio program. Thousands of parks each have a reference number, and operators either go to a park or call the people who did.</p>
       </div>
-
-      <fieldset>
-        <legend>My activations (stays in this browser)</legend>
-        <div class="buttons">
-          <button type="button" id="loadCsv">Load my CSV</button>
-          <button type="button" id="clearMine">Clear</button>
-          <input type="file" id="csvFile" accept=".csv,text/csv" multiple hidden>
+      <div class="terms">
+        <div class="k-card">
+          <h3>Activator</h3>
+          <p>The operator in the park. That's me, with whatever kids came along.</p>
         </div>
-        <p id="mineStatus" class="hint"></p>
-      </fieldset>
-
-      <fieldset>
-        <legend>Home</legend>
-        <div class="home">
-          <label>Lat <input type="number" id="homeLat" step="0.0001" min="-90" max="90"></label>
-          <label>Lon <input type="number" id="homeLon" step="0.0001" min="-180" max="180"></label>
+        <div class="k-card">
+          <h3>Hunter</h3>
+          <p>Operators at home or on the road who call in to contact the park.</p>
         </div>
-        <div class="buttons">
-          <button type="button" id="homeSet">Set</button>
-          <button type="button" id="homeLocate">Use my location</button>
-          <button type="button" id="homeReset">Reset</button>
+        <div class="k-card">
+          <h3>Activation</h3>
+          <p>Ten or more contacts from one park in one day. Every contact goes in the log.</p>
         </div>
-        <p class="hint">You can also drag the home marker on the map.</p>
-      </fieldset>
-    </details>
+      </div>
+    </section>
 
-    <p id="count" class="count" aria-live="polite"></p>
+    <section class="k-section" aria-labelledby="day">
+      <div class="head">
+        <div class="k-tag kicker"><span class="dot"></span>How it goes</div>
+        <h2 id="day">An activation, start to finish</h2>
+      </div>
+      <ol class="steps">
+        <li><b>Pick a park</b><span>Often one that hardly anyone has activated, so hunters are glad to hear it on the air.</span></li>
+        <li><b>Set up</b><span>Radio on the table, antenna up on the mast, power from the car.</span></li>
+        <li><b>Get on the air</b><span>Post a spot on pota.app so hunters know where to listen, then start calling.</span></li>
+        <li><b>Log the contacts</b><span>Callsign, location and signal report for every station we reach.</span></li>
+        <li><b>Color the map</b><span>Afterwards we see which states heard us. Kids love seeing how far a signal went.</span></li>
+      </ol>
+    </section>
 
-    <div class="tablewrap">
-      <table id="list">
-        <thead>
-          <tr>
-            <th data-sort="activations" class="num" title="Activations">Act</th>
-            <th data-sort="name">Park</th>
-            <th data-sort="state">State</th>
-            <th data-sort="distance" class="num" title="Miles from home">Mi</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </aside>
-</main>
+    <section class="k-section" aria-labelledby="tools">
+      <div class="head">
+        <div class="k-tag kicker"><span class="dot"></span>Tools</div>
+        <h2 id="tools">Plan it, then map it</h2>
+      </div>
+      <div class="tools">
+        <a class="k-card tool" href="parks/">
+          <span class="pill">Map</span>
+          <div>
+            <h3>Rare Parks Finder</h3>
+            <p>The least-activated parks within driving distance of Lincoln, with distance rings, filters and directions.</p>
+          </div>
+          <span class="go">Find a park <i>→</i></span>
+        </a>
+        <div class="k-card tool soon">
+          <span class="pill">Coming soon</span>
+          <div>
+            <h3>States Worked Map</h3>
+            <p>Color in every state we reached during an activation, so kids can see where we talked to people.</p>
+          </div>
+          <span class="go k-muted">In the works</span>
+        </div>
+      </div>
+      <p class="more">New to POTA? The official site, <a href="https://pota.app">pota.app</a>, lists every park and who's on the air right now.</p>
+    </section>
+  </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" crossorigin=""></script>
-<script src="js/app.js"></script>
+  <footer data-k1kfx-footer></footer>
 </body>
 </html>

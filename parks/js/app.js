@@ -530,7 +530,7 @@
   async function start() {
     try {
       let meta, raw;
-      [config, raw, meta] = await Promise.all([getJson('config.json'), getJson('data/parks.json'), getJson('data/meta.json')]);
+      [config, raw, meta] = await Promise.all([getJson('../config.json'), getJson('../data/parks.json'), getJson('../data/meta.json')]);
 
       const stored = load(SETTINGS_KEY, {});
       const codes = config.states.map((s) => s.code);

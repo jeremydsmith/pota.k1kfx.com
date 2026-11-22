@@ -9,7 +9,8 @@ and stored as JSON in `/data`.
 
 | Path | What it is |
 | --- | --- |
-| `index.html`, `css/`, `js/app.js` | The site |
+| `index.html`, `img/` | The Parks on the Air hub page (uses the shared K1KFX kit from k1kfx.com/kit/) |
+| `parks/` (`index.html`, `css/`, `js/app.js`) | The Rare Parks Finder map |
 | `config.json` | Home location, list of states, API settings, repo name |
 | `scripts/update-data.mjs` | Fetches every state and writes `/data` |
 | `scripts/serve.mjs` | Optional local preview server |
