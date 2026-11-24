@@ -2,7 +2,7 @@
 // Files are served from the cache straight away and refreshed in the
 // background, so an update shows up on the next visit.
 // Bump VERSION when the list of files below changes.
-const VERSION = 'states-map-v2';
+const VERSION = 'states-map-v3';
 const FILES = [
   './',
   'index.html',

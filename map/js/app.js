@@ -3,7 +3,6 @@
   'use strict';
 
   const KEY = 'k1kfxStates.v1';
-  const KEY_PAST = 'k1kfxStates.showPast';   // '1' or '0': the "Past maps" switch
   const FILE_APP = 'k1kfx-states-worked';
   const HOLD_MS = 550;        // long press to remove
   const MOVE_PX = 14;         // a finger that slides this far is not a tap
@@ -30,7 +29,7 @@
   let byCode = {};
   let found = null;           // state code outlined by "Find a state"
   let warnedNoSave = false;
-  let showPast = loadShowPast();
+  let showPast = false;       // the "History" switch: always off when the app opens
 
   function newSession() {
     const now = new Date().toISOString();
@@ -76,9 +75,8 @@
       if (!warnedNoSave) { warnedNoSave = true; toast("This browser can't save. Use Save to file."); }
     }
   }
-  function loadShowPast() {
-    try { return localStorage.getItem(KEY_PAST) !== '0'; } catch { return true; }
-  }
+  // The switch used to be remembered; forget the old setting.
+  try { localStorage.removeItem('k1kfxStates.showPast'); } catch {}
   // Every state reached on an earlier map.
   function pastCodes() {
     const set = new Set();
@@ -135,7 +133,7 @@
 
   function render() {
     // Today's states are green. States from earlier maps are grey while the
-    // "Past maps" switch is on. Green always wins.
+    // "History" switch is on. Green always wins.
     const past = pastCodes();
     let anyPast = false;
     for (const code in byCode) {
@@ -238,11 +236,10 @@
   });
   svg.addEventListener('focusout', () => $('focusRing').setAttribute('d', ''));
 
-  // "Past maps" switch
+  // "History" switch
   const pastToggle = $('pastToggle');
   function flipPast() {
     showPast = !showPast;
-    try { localStorage.setItem(KEY_PAST, showPast ? '1' : '0'); } catch {}
     render();
   }
   pastToggle.addEventListener('click', flipPast);
@@ -294,7 +291,16 @@
     findInput.focus();
   });
   $('findClose').addEventListener('click', closeFind);
-  function closeFind() { findBox.hidden = true; findInput.blur(); }
+  function closeFind() {
+    findInput.blur();
+    findBox.hidden = true;
+    // Android (seen on a Galaxy Tab A7 Lite and a Boox Go 10) can leave the
+    // map shifted down after the keyboard closes until the next tap. Put it
+    // back once now and again as the keyboard finishes closing.
+    settle();
+    setTimeout(settle, 300);
+    setTimeout(settle, 800);
+  }
 
   function matches(q) {
     q = q.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -373,12 +379,24 @@
     if (act === 'save') saveFile();
     if (act === 'load') $('fileInput').click();
     if (act === 'full') toggleFull();
+    if (act === 'clear') clearHistory();
   });
+
+  async function clearHistory() {
+    const n = data.past.length;
+    if (!n) { toast('History is already empty.'); return; }
+    const text = `This erases ${n} earlier ${n === 1 ? 'map' : 'maps'} from this device. Today's map stays. This can't be undone (unless you saved a file).`;
+    if (!(await ask('Clear history?', text, 'Clear', 'Cancel'))) return;
+    data.past = [];
+    save();
+    render();
+    toast('History cleared.');
+  }
 
   async function startFresh() {
     const n = count();
     const text = n
-      ? `Today's ${n} ${n === 1 ? 'state' : 'states'} will be saved as a past map, and a new map starts.`
+      ? `Today's ${n} ${n === 1 ? 'state' : 'states'} will be saved to History, and a new map starts.`
       : 'The map is already empty.';
     if (!n) { toast(text); return; }
     if (!(await ask('Start a new map?', text, 'Start fresh', 'Cancel'))) return;
@@ -425,7 +443,7 @@
       return;
     }
     const n = Object.keys(incoming.current.states).filter((c) => byCode[c]).length;
-    const ok = await ask('Load this file?', `Its map has ${n} ${n === 1 ? 'state' : 'states'}. It replaces the map on screen. Past maps from the file are added to the past maps here.`, 'Load', 'Cancel');
+    const ok = await ask('Load this file?', `Its map has ${n} ${n === 1 ? 'state' : 'states'}. It replaces the map on screen. History from the file is added to History here.`, 'Load', 'Cancel');
     if (!ok) return;
     const ids = new Set(data.past.map((s) => s.id));
     for (const s of incoming.past) if (!ids.has(s.id)) data.past.push(s);
@@ -491,15 +509,31 @@
     rewardTimer = setTimeout(() => { r.hidden = true; r.classList.remove('show'); }, 3000);
   }
 
+  // ── Keep the map in place when the on-screen keyboard opens or closes ──
+  // The page never scrolls on purpose, so any scroll is the browser nudging
+  // things for the keyboard: undo it and make the map re-measure.
+  function settle() {
+    if (document.activeElement === findInput) return;
+    if (scrollX || scrollY) scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    const m = document.querySelector('main');
+    m.style.height = innerHeight + 'px';
+    void m.offsetHeight;
+    m.style.height = '';
+  }
+  if (window.visualViewport) visualViewport.addEventListener('resize', settle);
+  addEventListener('resize', settle);
+  addEventListener('scroll', settle);
+
   // ── Small screens ──
   if (Math.min(innerWidth, innerHeight) < 500) $('phoneNote').hidden = false;
   $('phoneNoteClose').addEventListener('click', () => { $('phoneNote').hidden = true; });
 
   // Another tab or window changed the saved map: show it.
   addEventListener('storage', (e) => {
-    if (e.key !== KEY && e.key !== KEY_PAST && e.key !== null) return;
+    if (e.key !== KEY && e.key !== null) return;
     data = load();
-    showPast = loadShowPast();
     render();
   });
 

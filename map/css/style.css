@@ -1,10 +1,10 @@
 /* States Worked Map. Uses the K1KFX kit for fonts and base colors. */
 :root {
-  --sea: #ececec;          /* around the map */
+  --sea: #fafafa;          /* around the map: almost white */
   --land: #ffffff;         /* a state not reached yet */
   --border: #0e0e0e;
   --today: #22c55e;        /* states reached today (black text stays readable on it) */
-  --past: #bcc0c6;         /* states reached on an earlier map ("Past maps" switch on) */
+  --past: #dcdee1;         /* states reached on an earlier map ("History" switch on); light for e-ink */
   --focus: #0b57d0;        /* keyboard focus outline */
   --find: #ffd400;         /* "Find a state" flash */
   --leader: #8a8a8a;
@@ -12,6 +12,7 @@
 
 [hidden] { display: none !important; }
 html, body { height: 100%; overflow: hidden; }
+body { position: fixed; inset: 0; }   /* nothing for the keyboard to scroll */
 body {
   background: var(--sea);
   overscroll-behavior: none;
@@ -37,7 +38,7 @@ main { position: fixed; inset: 0; padding: max(8px, env(safe-area-inset-top)) ma
 .state.on, .box.on rect { fill: var(--today); }
 @media (hover: hover) {
   .state:hover:not(.on), .box:hover:not(.on) rect { fill: #f1fbf4; }
-  .state.past:hover, .box.past:hover rect { fill: #cbdccf; }
+  .state.past:hover, .box.past:hover rect { fill: #d3e6d8; }
 }
 .state, .box, .past-toggle { outline: none; }   /* keyboard focus is drawn below instead */
 .frame, .leader { pointer-events: none; }
@@ -74,7 +75,7 @@ main { position: fixed; inset: 0; padding: max(8px, env(safe-area-inset-top)) ma
 #count.bump { animation: bump .45s cubic-bezier(.3, 1.6, .5, 1); }
 @keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.14); } 100% { transform: scale(1); } }
 
-/* "Past maps" switch, under the count */
+/* "History" switch, under the count */
 .past-toggle { cursor: pointer; }
 .past-toggle .pill { fill: var(--land); stroke: var(--border); stroke-width: 1.4px; vector-effect: non-scaling-stroke; }
 .past-toggle text { font-family: var(--font-display); font-size: 20px; fill: var(--ink); text-anchor: end; dominant-baseline: central; pointer-events: none; }

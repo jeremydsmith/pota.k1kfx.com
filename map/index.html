@@ -2,10 +2,10 @@
 <html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=overlays-content">
 <title>States Worked Map</title>
 <meta name="description" content="Tap each state we reach during a Parks on the Air activation and watch the map fill in.">
-<meta name="theme-color" content="#ececec">
+<meta name="theme-color" content="#fafafa">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -26,10 +26,10 @@
       <text id="countNum" x="1100" y="500" text-anchor="end"></text>
       <text id="countWord" x="1100" y="545" text-anchor="end"></text>
     </g>
-    <g id="pastToggle" class="past-toggle" role="switch" aria-checked="true" aria-label="Show states from past maps in grey" tabindex="0" hidden>
-      <title>Show states from past maps in grey</title>
-      <rect class="pill" x="880" y="562" width="220" height="50" rx="25"/>
-      <text x="1018" y="588">Past maps</text>
+    <g id="pastToggle" class="past-toggle" role="switch" aria-checked="false" aria-label="History: show states from earlier maps in grey" tabindex="0" hidden>
+      <title>History: show states from earlier maps in grey</title>
+      <rect class="pill" x="912" y="562" width="188" height="50" rx="25"/>
+      <text x="1018" y="588">History</text>
       <rect class="track" x="1028" y="573" width="60" height="28" rx="14"/>
       <circle class="knob" cx="1042" cy="587" r="9"/>
     </g>
@@ -64,6 +64,7 @@
   <button type="button" data-act="save">Save to file</button>
   <button type="button" data-act="load">Load file</button>
   <button type="button" data-act="full" id="fullBtn">Full screen</button>
+  <button type="button" data-act="clear">Clear history</button>
   <p class="hint">Saved in this browser only. Use <b>Save to file</b> to keep a copy.</p>
   <button type="button" data-act="close" class="plain">Close</button>
 </dialog>

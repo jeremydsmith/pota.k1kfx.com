@@ -135,13 +135,14 @@ turns green. Built for an 11" tablet or a laptop in landscape.
   yellow three times and keeps a yellow outline until someone taps it. Finding
   never adds a state by itself.
   Tapping the map while the Find box is open only closes the box.
-- **Past maps** (switch under the count): states reached on any earlier map
-  show in light grey. Today's green always wins, and the count is today's
-  states only. Switch it off and those states are white again. The switch
-  appears once a map has been finished with **Start fresh** (or loaded from a
-  file), and each browser remembers its setting.
+- **History** (switch under the count): states reached on any earlier map
+  show in light grey (kept light so it reads on e-ink screens). Today's green
+  always wins, and the count is today's states only. The switch is off every
+  time the app opens. It appears once a map has been finished with
+  **Start fresh** (or loaded from a file).
 - **Rewards** pop up at 5, 10, 15 … 50 states and at all 51, once per map.
-- **Menu:** Start fresh, Save to file, Load file, Full screen.
+- **Menu:** Start fresh, Save to file, Load file, Full screen, Clear history
+  (erases the earlier maps on this device after a confirm; today's map stays).
 - **Keyboard:** Tab to a state, Enter adds it, Delete asks to remove it.
 
 ### Saving
@@ -149,11 +150,9 @@ turns green. Built for an 11" tablet or a laptop in landscape.
 Everything is kept in that browser's local storage after every tap, so a
 reload brings the map back. It does not sync between devices, and clearing the
 browser's site data erases it. **Start fresh** moves the current map into the
-list of past maps, which is what the grey **Past maps** layer draws from.
+History, which is what the grey **History** layer draws from.
 **Save to file** downloads a `states-YYYY-MM-DD.json` file with the
-current map and all past maps; **Load file** brings one back. The Past maps
-switch setting is stored separately (`k1kfxStates.showPast`) and is not part
-of the file.
+current map and all of History; **Load file** brings one back.
 
 ### Offline and home screen
 
@@ -163,6 +162,12 @@ and choose **Add to Home screen**: it then opens full screen like an app. After
 changing files in `map/`, a device that already has the page shows the update
 on its second load (the first load comes from the cache). If you add or rename
 files, add them to `FILES` in `sw.js`, and bump `VERSION` with any change.
+
+On Android the on-screen keyboard (opened by Find) is set to float over the
+page (`interactive-widget=overlays-content`) instead of shrinking it, and the
+page snaps itself back into place when the keyboard closes. Without this, a
+Galaxy Tab A7 Lite and a Boox Go 10 left the map shifted down until the next
+tap.
 
 ### Where the map comes from
 
