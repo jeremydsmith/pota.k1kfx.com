@@ -164,10 +164,10 @@ on its second load (the first load comes from the cache). If you add or rename
 files, add them to `FILES` in `sw.js`, and bump `VERSION` with any change.
 
 On Android the on-screen keyboard (opened by Find) is set to float over the
-page (`interactive-widget=overlays-content`) instead of shrinking it, and the
-page snaps itself back into place when the keyboard closes. Without this, a
-Galaxy Tab A7 Lite and a Boox Go 10 left the map shifted down until the next
-tap.
+page (`interactive-widget=overlays-content`) instead of shrinking it. Where a
+tablet shrinks the page anyway (seen on a Galaxy Tab A7 Lite and a Boox Go 10),
+the map is pinned to its full size while Find is open and let go only once the
+keyboard is fully closed, so it never jumps.
 
 ### Where the map comes from
 

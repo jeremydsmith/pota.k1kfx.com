@@ -14,8 +14,8 @@
   const BOX = { x: 985, y: 108, w: 56, h: 44, gap: 6 };
 
   const REWARDS = {
-    5: 'Nice start!', 10: 'Double digits!', 15: 'Keep calling!', 20: 'Twenty states!',
-    25: 'Halfway there!', 30: 'Thirty! Wow!', 35: 'On fire!', 40: 'Forty states!',
+    5: 'Nice start!', 10: 'Double digits!', 15: "You're on a roll!", 20: 'Amazing!',
+    25: 'Halfway there!', 30: 'Thirty! Wow!', 35: 'Way to go!', 40: 'Forty states!',
     45: 'So close!', 50: 'Fifty states!', 51: 'Every state plus DC!',
   };
 
@@ -285,6 +285,7 @@
   // ── Find a state ──
   const findBox = $('find'), findInput = $('findInput'), findResults = $('findResults');
   $('findBtn').addEventListener('click', () => {
+    lockMap();
     findBox.hidden = false;
     findInput.value = '';
     findResults.replaceChildren();
@@ -294,12 +295,7 @@
   function closeFind() {
     findInput.blur();
     findBox.hidden = true;
-    // Android (seen on a Galaxy Tab A7 Lite and a Boox Go 10) can leave the
-    // map shifted down after the keyboard closes until the next tap. Put it
-    // back once now and again as the keyboard finishes closing.
-    settle();
-    setTimeout(settle, 300);
-    setTimeout(settle, 800);
+    unlockSoon();
   }
 
   function matches(q) {
@@ -509,26 +505,46 @@
     rewardTimer = setTimeout(() => { r.hidden = true; r.classList.remove('show'); }, 3000);
   }
 
-  // ── Keep the map in place when the on-screen keyboard opens or closes ──
-  // The page never scrolls on purpose, so any scroll is the browser nudging
-  // things for the keyboard: undo it and make the map re-measure.
-  function settle() {
-    if (document.activeElement === findInput) return;
-    if (scrollX || scrollY) scrollTo(0, 0);
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
-    const m = document.querySelector('main');
-    m.style.height = innerHeight + 'px';
-    void m.offsetHeight;
-    m.style.height = '';
+  // ── Keep the map still while the on-screen keyboard opens and closes ──
+  // On some Android tablets (a Galaxy Tab A7 Lite and a Boox Go 10) the
+  // keyboard shrinks the page, so the map would shrink and re-center, then
+  // jump back when the keyboard closes. While Find is open the map is pinned
+  // to the size it had before, and let go only once the keyboard is fully
+  // gone and the page is its full size again.
+  const mainEl = document.querySelector('main');
+  let lock = null;            // { w, h, timer } while the map is pinned
+  function lockMap() {
+    if (lock) { clearTimeout(lock.timer); return; }
+    lock = { w: innerWidth, h: innerHeight, timer: 0 };
+    mainEl.style.width = lock.w + 'px';
+    mainEl.style.height = lock.h + 'px';
   }
-  if (window.visualViewport) visualViewport.addEventListener('resize', settle);
-  addEventListener('resize', settle);
-  addEventListener('scroll', settle);
-
-  // ── Small screens ──
-  if (Math.min(innerWidth, innerHeight) < 500) $('phoneNote').hidden = false;
-  $('phoneNoteClose').addEventListener('click', () => { $('phoneNote').hidden = true; });
+  function unlockMap() {
+    if (!lock) return;
+    clearTimeout(lock.timer);
+    lock = null;
+    mainEl.style.width = '';
+    mainEl.style.height = '';
+  }
+  function keyboardGone() {
+    const vh = window.visualViewport ? visualViewport.height : innerHeight;
+    return innerHeight >= lock.h - 2 && vh >= lock.h - 2;
+  }
+  function unlockSoon() {
+    if (!lock) return;
+    if (keyboardGone()) { unlockMap(); return; }
+    clearTimeout(lock.timer);
+    lock.timer = setTimeout(unlockMap, 1500);   // in case the size never comes back exactly
+  }
+  function onResize() {
+    if (scrollX || scrollY) scrollTo(0, 0);
+    if (!lock) return;
+    if (Math.abs(innerWidth - lock.w) > 2) { unlockMap(); return; }   // turned the tablet
+    if (findBox.hidden && keyboardGone()) unlockMap();
+  }
+  if (window.visualViewport) visualViewport.addEventListener('resize', onResize);
+  addEventListener('resize', onResize);
+  addEventListener('scroll', () => { if (scrollX || scrollY) scrollTo(0, 0); });
 
   // Another tab or window changed the saved map: show it.
   addEventListener('storage', (e) => {

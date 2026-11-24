@@ -1,10 +1,10 @@
 /* States Worked Map. Uses the K1KFX kit for fonts and base colors. */
 :root {
-  --sea: #fafafa;          /* around the map: almost white */
+  --sea: #fdfdfd;          /* around the map: almost white */
   --land: #ffffff;         /* a state not reached yet */
   --border: #0e0e0e;
   --today: #22c55e;        /* states reached today (black text stays readable on it) */
-  --past: #dcdee1;         /* states reached on an earlier map ("History" switch on); light for e-ink */
+  --past: #e8e9eb;         /* states reached on an earlier map ("History" switch on); light for e-ink */
   --focus: #0b57d0;        /* keyboard focus outline */
   --find: #ffd400;         /* "Find a state" flash */
   --leader: #8a8a8a;
@@ -156,13 +156,6 @@ button { font: inherit; }
   100% { opacity: 0; transform: translate(-50%, -50%) scale(.96); }
 }
 
-.phone-note {
-  position: fixed; left: 12px; bottom: 12px; z-index: 5;
-  background: var(--bg); border-radius: 999px; padding: 6px 6px 6px 16px; font-size: 14px;
-  display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, .15);
-}
-.phone-note .plain { padding: 4px 14px; }
-
 /* ── Dialogs ── */
 .sheet {
   margin: auto; border: 0; border-radius: 22px; padding: 26px;
@@ -171,11 +164,11 @@ button { font: inherit; }
   box-shadow: 0 20px 60px rgba(0, 0, 0, .3);
 }
 .sheet::backdrop { background: rgba(0, 0, 0, .45); }
-.sheet h2 { font-size: 32px; margin: 0 0 16px; }
+.sheet h2 { font-size: 30px; margin: 0 0 12px; }
 .sheet > button:not(.plain) {
   display: block; width: 100%; text-align: left;
-  background: var(--card); color: var(--ink); border: 0; border-radius: 14px;
-  padding: 16px 18px; margin-bottom: 10px; font-weight: 600; font-size: 19px; cursor: pointer;
+  background: var(--card); color: var(--ink); border: 0; border-radius: 12px;
+  padding: 11px 18px; margin-bottom: 8px; font-weight: 600; font-size: 19px; cursor: pointer;
 }
 .sheet > button:not(.plain):active { background: var(--card-hover); }
 .sheet .hint { color: var(--muted); font-size: 14px; line-height: 1.45; margin: 6px 0 16px; }
