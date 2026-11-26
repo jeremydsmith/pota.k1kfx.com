@@ -96,8 +96,9 @@
     return set;
   }
   const has = (code) => Object.prototype.hasOwnProperty.call(data.current.states, code);
-  // The big count and the rewards are US states only.
-  const count = () => Object.keys(data.current.states).filter((c) => byCode[c] && !byCode[c].province).length;
+  // The big count and the rewards include Canadian provinces.
+  const count = () => Object.keys(data.current.states).filter((c) => byCode[c]).length;
+  const usCount = () => Object.keys(data.current.states).filter((c) => byCode[c] && !byCode[c].province).length;
 
   // ── Draw the map ──
   function el(tag, attrs, parent) {
@@ -203,7 +204,9 @@
     if (REWARDS[n] && !data.current.rewards.includes(n)) {
       data.current.rewards.push(n);
       save();
-      reward(n === 51 ? 'All 51!' : `${n} states!`, REWARDS[n]);
+      // "All 51" only when it really is every US state plus DC.
+      if (n === 51 && usCount() === 51) reward('All 51!', REWARDS[51]);
+      else reward(`${n} states!`, n === 51 ? 'Wow!' : REWARDS[n]);
     }
   }
   function remove(code) {

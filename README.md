@@ -143,8 +143,8 @@ turns green. Built for an 11" tablet or a laptop in landscape.
 - **Canada:** the 10 provinces (BC, AB, SK, MB, ON, QC on top; NB, NS, PE, NL
   centered under them) are smaller boxes in the open space above the Great
   Lakes, placed so the gap to Minnesota equals the gap to Maine. They work like
-  the state boxes (tap, hold to remove, History grey, Find by name or code) but
-  don't count toward the big state count or the rewards. They use the same
+  the state boxes (tap, hold to remove, History grey, Find by name or code) and
+  count toward the big count and the rewards. They use the same
   2-letter codes ADIF logs use for Canada.
 - **Remove:** press and hold a green state (right-click on a laptop), then
   confirm.
