@@ -13,6 +13,18 @@
     ['NJ', 1, 2], ['DE', 0, 3], ['MD', 1, 3], ['DC', 0, 4]];
   const BOX = { x: 985, y: 108, w: 56, h: 44, gap: 6 };
 
+  // Canada's 10 provinces: smaller boxes in the open space above the Great
+  // Lakes, west to east, second row centered under the first. x is chosen so
+  // the gap to Minnesota on the left equals the gap to Maine on the right.
+  // Codes are the ones ADIF logs use for Canada; none clash with a US code.
+  const PROVINCES = [
+    ['BC', 'British Columbia'], ['AB', 'Alberta'], ['SK', 'Saskatchewan'], ['MB', 'Manitoba'],
+    ['ON', 'Ontario'], ['QC', 'Quebec'], ['NB', 'New Brunswick'], ['NS', 'Nova Scotia'],
+    ['PE', 'Prince Edward Island'], ['NL', 'Newfoundland and Labrador'],
+  ];
+  const PROV_ROWS = [6, 4];   // boxes per row
+  const PROV = { x: 563, y: 4, w: 46, h: 36, gap: 5 };
+
   const REWARDS = {
     5: 'Nice start!', 10: 'Double digits!', 15: "You're on a roll!", 20: 'Amazing!',
     25: 'Halfway there!', 30: 'Thirty! Wow!', 35: 'Way to go!', 40: 'Forty states!',
@@ -84,7 +96,8 @@
     return set;
   }
   const has = (code) => Object.prototype.hasOwnProperty.call(data.current.states, code);
-  const count = () => Object.keys(data.current.states).filter((c) => byCode[c]).length;
+  // The big count and the rewards are US states only.
+  const count = () => Object.keys(data.current.states).filter((c) => byCode[c] && !byCode[c].province).length;
 
   // ── Draw the map ──
   function el(tag, attrs, parent) {
@@ -128,6 +141,21 @@
       el('rect', { x, y, width: BOX.w, height: BOX.h, rx: 9 }, g);
       el('text', { x: x + BOX.w / 2, y: y + BOX.h / 2 + 1 }, g).textContent = code;
     }
+    const rowWidth = (n) => n * PROV.w + (n - 1) * PROV.gap;
+    let i = 0;
+    PROV_ROWS.forEach((n, row) => {
+      const x0 = PROV.x + (rowWidth(PROV_ROWS[0]) - rowWidth(n)) / 2;
+      const y = PROV.y + row * (PROV.h + PROV.gap);
+      for (let k = 0; k < n; k++, i++) {
+        const [code, name] = PROVINCES[i];
+        byCode[code] = { code, name, province: true };
+        const x = x0 + k * (PROV.w + PROV.gap);
+        const g = el('g', { class: 'box prov', id: 'b-' + code, 'data-code': code, tabindex: '0', role: 'button', 'aria-label': name }, gBoxes);
+        el('title', {}, g).textContent = name;
+        el('rect', { x, y, width: PROV.w, height: PROV.h, rx: 8 }, g);
+        el('text', { x: x + PROV.w / 2, y: y + PROV.h / 2 + 1 }, g).textContent = code;
+      }
+    });
     render();
   }
 
@@ -346,7 +374,7 @@
       t.classList.add('flash');
     }
     // The outline is its own copy of the state's shape, drawn above the labels.
-    $('foundRing').setAttribute('d', byCode[code].d);
+    $('foundRing').setAttribute('d', byCode[code].d || '');   // provinces have only a box
     const b = $('b-' + code);
     if (b) b.classList.add('found');
     if (has(code)) toast(`Already got ${byCode[code].name}!`);

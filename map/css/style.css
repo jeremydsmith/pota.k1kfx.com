@@ -54,6 +54,7 @@ main { position: fixed; inset: 0; padding: max(8px, env(safe-area-inset-top)) ma
   pointer-events: none;
 }
 .box text { font-size: 19px; }
+.box.prov text { font-size: 16px; }   /* Canadian provinces: smaller, rarely used */
 
 /* Find a state: three yellow flashes, then a thick yellow outline until tapped. */
 @keyframes flash { 0%, 100% { fill: var(--land); } 50% { fill: var(--find); } }
