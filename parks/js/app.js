@@ -5,7 +5,17 @@
 
   const SETTINGS_KEY = 'potaRare.settings.v1';
   const MINE_KEY = 'potaRare.myActivations.v1';
-  const RINGS_MI = [50, 100, 200, 300, 400, 500];
+  const RINGS_MI = [50, 100, 200, 300, 400, 500, 600];
+  // "Max activations" slider stops: one notch per value where it matters (the
+  // rare end, and the legend's colour boundaries 3, 5, 8, 12), coarse above that.
+  const ACT_ANY = 1e9;
+  const ACT_STOPS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 15, 20, 25, 30, 40, ACT_ANY];
+  const actIndex = (v) => {
+    let best = 0;
+    ACT_STOPS.forEach((s, i) => { if (Math.abs(s - v) < Math.abs(ACT_STOPS[best] - v)) best = i; });
+    return best;
+  };
+  const actLabel = (v) => (v >= ACT_ANY ? 'Any' : String(v));
   const M_PER_MI = 1609.344;
   const UNCLUSTER_ZOOM = 10;
 
@@ -45,9 +55,23 @@
     ['State Fishing Lake', /State Fishing Lake|Fish Hatchery/i],
     ['State Forest', /State Forest/i],
     ['Natural Area / Preserve', /Natur(al|e) (Area|Preserve)|State Preserve/i],
+    // Catch-alls for names common in the outer states (checked last)
+    ['Public Land (BLM)', /\bBLM\b|Bureau of Land Management|Recreation Management Area|Recreation Site/i],
+    ['Wildlife Area', /Game Land|Game Preserve|Wildlife (Refuge|Reserve|Sanctuary)|State Sanctuary|Management Area/i],
+    ['Natural Area / Preserve', /Wilderness|Scenic (Reserve|Site)|Natur(al|e) (Reserve|Site|Park)|Unique Area|Protected Area|Protection Area|(Aquatic|Wetland|State) Reserve/i],
+    ['State Historic Site', /Histor(ic|ical) Site|Interpretive Site|Preservation Site/i],
   ];
-  function parkType(name) {
-    for (const [label, re] of TYPES) if (re.test(name)) return label;
+  // Canadian names follow different patterns, so Canadian parks get their own list
+  const CA_TYPES = [
+    ['Provincial Park', /Provincial Park|Recreation Park|International Park|Provincial Recreation/i],
+    ['Historic Site (Canada)', /Historic Site|Heritage/i],
+    ['National Park (Canada)', /National Park/i],
+    ['Conservation Area', /Conservation (Area|Reserve)/i],
+    ['Wildlife Area', /Wildlife (Management )?Area/i],
+    ['Natural Area / Preserve', /Ecological Reserve|Natur(al|e) (Area|Reserve)|Wilderness Area|Forest Reserve/i],
+  ];
+  function parkType(name, ref) {
+    for (const [label, re] of /^CA-/.test(ref) ? CA_TYPES : TYPES) if (re.test(name)) return label;
     return 'Other';
   }
 
@@ -86,7 +110,8 @@
       Math.cos(lat1 * r) * Math.cos(lat2 * r) * Math.sin(((lon2 - lon1) * r) / 2) ** 2;
     return 3958.7613 * 2 * Math.asin(Math.sqrt(a));
   }
-  const stateAbbr = (desc) => desc.split(',').map((s) => s.replace(/^US-/, ''));
+  // "US-NE" -> "NE", "CA-ON" -> "ON"
+  const stateAbbr = (desc) => desc.split(',').map((s) => s.replace(/^(US|CA)-/, ''));
 
   // ---------- CSV ----------
   function parseCsv(text) {
@@ -451,23 +476,24 @@
   function wireControls() {
     const dist = $('dist'), act = $('act');
     dist.value = settings.dist;
-    act.value = settings.act;
-    const labels = () => { $('distVal').textContent = dist.value; $('actVal').textContent = act.value; };
+    act.max = ACT_STOPS.length - 1;
+    act.value = actIndex(settings.act);
+    const labels = () => { $('distVal').textContent = dist.value; $('actVal').textContent = actLabel(ACT_STOPS[act.value]); act.setAttribute('aria-valuetext', actLabel(ACT_STOPS[act.value])); };
     labels();
     dist.addEventListener('input', () => { settings.dist = +dist.value; labels(); saveSettings(); queueRender(); });
     dist.addEventListener('change', fitToDistance);
-    act.addEventListener('input', () => { settings.act = +act.value; labels(); saveSettings(); queueRender(); });
+    act.addEventListener('input', () => { settings.act = ACT_STOPS[+act.value]; labels(); saveSettings(); queueRender(); });
 
     $('search').value = settings.search;
     $('search').addEventListener('input', (e) => { settings.search = e.target.value; saveSettings(); queueRender(); });
 
-    // State chips, alphabetical by postal code so a state is easy to find
+    // State/province chips, alphabetical by 2-letter code (MB and ON mixed in) so one is easy to find
     // whatever the home location is. Full name and park count on hover.
     const perState = {};
     for (const p of parks) for (const s of p.locationDesc.split(',')) perState[s] = (perState[s] || 0) + 1;
-    const sortedStates = [...config.states].sort((a, b) => a.code.localeCompare(b.code));
+    const sortedStates = [...config.states].sort((a, b) => stateAbbr(a.code)[0].localeCompare(stateAbbr(b.code)[0]));
     $('states').innerHTML = sortedStates.map((s) =>
-      `<label class="chip" title="${esc(s.name)}: ${perState[s.code] || 0} parks"><input type="checkbox" value="${esc(s.code)}"${settings.states.includes(s.code) ? ' checked' : ''}><span>${esc(s.code.replace(/^US-/, ''))}</span></label>`).join('');
+      `<label class="chip" title="${esc(s.name)}: ${perState[s.code] || 0} parks"><input type="checkbox" value="${esc(s.code)}"${settings.states.includes(s.code) ? ' checked' : ''}><span>${esc(stateAbbr(s.code)[0])}</span></label>`).join('');
     const statesChanged = () => {
       settings.states = [...document.querySelectorAll('#states input:checked')].map((i) => i.value);
       $('statesCount').textContent = `${settings.states.length} of ${config.states.length}`;
@@ -562,10 +588,13 @@
       settings.states = codes.filter((c) => !known.has(c) || (stored.states || []).includes(c));
       settings.knownStates = codes;
       if (!['activations', 'distance', 'name', 'state'].includes(settings.sortKey)) settings.sortKey = 'activations';
+      // Older saved values (e.g. act 50 from the 0-50 slider) snap to the nearest stop
+      settings.act = ACT_STOPS[actIndex(Number(settings.act) || 0)];
+      settings.dist = Math.min(600, Math.max(25, Number(settings.dist) || 200));
 
       parks = raw
         .filter((p) => Number.isFinite(p.latitude) && Number.isFinite(p.longitude))
-        .map((p) => ({ ...p, type: parkType(p.name), flags: noteFlags(p.notes) }));
+        .map((p) => ({ ...p, type: parkType(p.name, p.reference), flags: noteFlags(p.notes) }));
       computeDistances();
 
       const when = new Date(meta.generatedAt);

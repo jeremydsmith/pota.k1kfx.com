@@ -49,18 +49,34 @@ async function fetchState(code) {
 const clean = (s) => (s == null ? '' : String(s).replace(/\s+/g, ' ').trim());
 const num = (n) => (Number.isFinite(Number(n)) ? Number(n) : 0);
 
+// pota.app only serves whole states/provinces, and the far side of a big one
+// (Ontario: 1,180 parks, ~20 within reach) would bloat the file. Keep only parks
+// within config.keepWithinMiles of config.home. Leave the setting out to keep all.
+const keepWithin = Number(config.keepWithinMiles) || Infinity;
+const milesFromHome = (lat, lon) => {
+  const r = Math.PI / 180, h = config.home;
+  const a = Math.sin(((lat - h.lat) * r) / 2) ** 2 +
+    Math.cos(h.lat * r) * Math.cos(lat * r) * Math.sin(((lon - h.lon) * r) / 2) ** 2;
+  return 3958.7613 * 2 * Math.asin(Math.sqrt(a));
+};
+
 const byRef = new Map();
 const perState = {};
+const trimmed = new Set(); // refs left out (a multi-state park counts once)
 
 for (const [i, state] of config.states.entries()) {
   if (i > 0) await sleep(delayMs);
   const parks = await fetchState(state.code);
-  perState[state.code] = parks.length;
-  console.log(`  ${state.code}: ${parks.length} parks`);
+  let kept = 0;
   for (const p of parks) {
-    if (byRef.has(p.reference)) continue; // multi-state park already seen
     const lat = Number(p.latitude);
     const lon = Number(p.longitude);
+    if (Number.isFinite(lat) && Number.isFinite(lon) && milesFromHome(lat, lon) > keepWithin) {
+      trimmed.add(p.reference);
+      continue;
+    }
+    kept++;
+    if (byRef.has(p.reference)) continue; // multi-state park already seen
     byRef.set(p.reference, {
       reference: p.reference,
       name: clean(p.name),
@@ -76,6 +92,8 @@ for (const [i, state] of config.states.entries()) {
       notes: clean(p.notes),
     });
   }
+  perState[state.code] = kept;
+  console.log(`  ${state.code}: ${parks.length} parks` + (kept < parks.length ? `, ${kept} within ${keepWithin} mi` : ''));
 }
 
 const parks = [...byRef.values()].sort((a, b) =>
@@ -100,10 +118,12 @@ if (previous !== null && previous.replace(/\r\n/g, '\n') === parksJson) {
     generatedAt: new Date().toISOString(),
     source: parksByLocation,
     states: config.states.map((s) => s.code),
+    keepWithinMiles: Number.isFinite(keepWithin) ? keepWithin : null,
     parksPerState: perState,
     totalParks: parks.length,
   };
   await writeFile(parksFile, parksJson);
   await writeFile(metaFile, JSON.stringify(meta, null, 2) + '\n');
+  if (trimmed.size) console.log(`Left out ${trimmed.size} parks more than ${keepWithin} mi from home.`);
   console.log(`Wrote ${parks.length} unique parks to data/parks.json (${meta.generatedAt}).`);
 }

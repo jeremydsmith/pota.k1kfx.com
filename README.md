@@ -59,7 +59,7 @@ it leaves the files (and the timestamp) alone.
 `.github/workflows/update-data.yml` runs the same script every night at 09:17
 UTC, and also whenever `config.json` or the script is pushed. It commits
 `data/` only when it changed. GitHub Pages republishes
-automatically after that commit. With 19 states a normal run takes about a
+automatically after that commit. With 24 states and provinces a normal run takes about a
 minute; the job's 30-minute timeout leaves room for slow or retried requests.
 
 To refresh on demand, open the repo's **Actions** tab, pick **Update park
@@ -75,26 +75,37 @@ Good to know:
   re-enable it from the Actions tab.
 - If pota.app ever blocks GitHub's servers, run the script by hand and push.
 
-## Which states are included
+## Which states and provinces are included
 
-Every state with any part inside 500 straight-line miles of home (Lincoln, NE),
-which is also the distance slider's maximum. That is 19 states: AR, CO, IA, IL,
-IN, KS, KY, MN, MO, MT, ND, NE, NM, OK, SD, TN, TX, WI, WY.
+Every state or province with any part inside 600 straight-line miles of home
+(Lincoln, NE), which is also the distance slider's maximum. That is 22 states
+and 2 provinces: AR, CO, IA, IL, IN, KS, KY, LA, MI, MN, MO, MS, MT, ND, NE,
+NM, OK, SD, TN, TX, WI, WY, plus Ontario (CA-ON) and Manitoba (CA-MB).
 
-This was worked out from US Census state boundaries (us-atlas 3.0.1, 1:10M):
-the distance from home to the nearest point on each state's border. Tennessee is
-the closest call (488 mi). Michigan's Upper Peninsula just misses at about
-504 mi. Montana's border is 470 mi away, but its nearest single-state park is
-531 mi, so with the slider at 500 it adds nothing visible today.
+This was worked out from boundary data (US Census outlines via us-atlas 3.0.1,
+and Natural Earth 1:50M for Canada): the distance from home to the nearest point
+on each border. The closest calls just outside are Saskatchewan (about 609 mi;
+its southern border is the 49th parallel) and Alabama (612 mi).
 
-On the site the state chips are alphabetical, with All and None buttons. A state
-newly added to `config.json` starts switched on, even for visitors who already
-have saved filter settings.
+### Only parks within 650 miles are kept
+
+pota.app serves whole states and provinces, and the far side of a big one adds
+lots of parks nobody here would see (Ontario has 1,180 parks, about 20 within
+600 mi). So `config.json` has `"keepWithinMiles": 650`, and the update script
+drops parks farther than that from the home in `config.json`. It logs how many
+it left out. This keeps `data/parks.json` around 1.5 MB (about 310 KB
+compressed). The trade-off: if you move home on the map, or use "Use my
+location" while travelling, parks more than 650 mi from Lincoln are not there.
+Remove the setting to keep everything.
+
+On the site the chips are alphabetical by two-letter code (provinces mixed in),
+with All and None buttons. A state newly added to `config.json` starts switched
+on, even for visitors who already have saved filter settings.
 
 ## Add a state
 
 Edit `config.json` and add a line to `states`, using the location code that
-pota.app shows in its park list (for example `US-CO`):
+pota.app shows in its park list (for example `US-CO`, or `CA-MB` for a Canadian province):
 
 ```json
 { "code": "US-CO", "name": "Colorado" }
@@ -197,8 +208,11 @@ Then open http://localhost:8765.
 ## Notes on the map
 
 - Dot colors by activation count: 0-3 red, 4-5 orange, 6-8 amber, 9-12 yellow,
-  13+ tan. Dashed distance rings sit at 50, 100, 200, 300, 400 and 500 miles from home.
-  Moving the distance slider fits the map to that radius. Dashed
+  13+ tan. Dashed distance rings sit at 50, 100, 200, 300, 400, 500 and 600 miles from home.
+  Moving the distance slider fits the map to that radius.
+- The "Max activations" slider moves in steps: 0 to 8 one at a time, then 10,
+  12, 15, 20, 25, 30, 40 and Any. That gives each low value a wide notch on a
+  phone and lines up with the colour boundaries (3, 5, 8, 12). Dashed
   circles with "×N" are clusters, colored by their rarest park.
 - Distances are straight-line miles from home, not driving miles.
 - The flags (closed / seasonal, hike / boat / rough road, permit, fee) come from

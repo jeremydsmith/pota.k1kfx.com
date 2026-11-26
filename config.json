@@ -2,6 +2,7 @@
   "title": "POTA Rare Parks",
   "repo": "jeremydsmith/pota.k1kfx.com",
   "home": { "name": "Lincoln, Nebraska", "lat": 40.8136, "lon": -96.7026 },
+  "keepWithinMiles": 650,
   "states": [
     { "code": "US-NE", "name": "Nebraska" },
     { "code": "US-KS", "name": "Kansas" },
@@ -21,7 +22,12 @@
     { "code": "US-MT", "name": "Montana" },
     { "code": "US-IN", "name": "Indiana" },
     { "code": "US-KY", "name": "Kentucky" },
-    { "code": "US-TN", "name": "Tennessee" }
+    { "code": "US-TN", "name": "Tennessee" },
+    { "code": "US-MI", "name": "Michigan" },
+    { "code": "US-MS", "name": "Mississippi" },
+    { "code": "US-LA", "name": "Louisiana" },
+    { "code": "CA-ON", "name": "Ontario" },
+    { "code": "CA-MB", "name": "Manitoba" }
   ],
   "api": {
     "parksByLocation": "https://api.pota.app/location/parks/{code}",
