@@ -28,7 +28,7 @@
   const REWARDS = {
     5: 'Nice start!', 10: 'Double digits!', 15: "You're on a roll!", 20: 'Amazing!',
     25: 'Halfway there!', 30: 'Thirty! Wow!', 35: 'Way to go!', 40: 'Forty states!',
-    45: 'So close!', 50: 'Fifty states!', 51: 'Every state plus DC!',
+    45: 'So close!', 50: 'Fifty states!',
   };
 
   const $ = (id) => document.getElementById(id);
@@ -98,8 +98,6 @@
   const has = (code) => Object.prototype.hasOwnProperty.call(data.current.states, code);
   // The big count and the rewards include Canadian provinces.
   const count = () => Object.keys(data.current.states).filter((c) => byCode[c]).length;
-  const usCount = () => Object.keys(data.current.states).filter((c) => byCode[c] && !byCode[c].province).length;
-
   // ── Draw the map ──
   function el(tag, attrs, parent) {
     const e = document.createElementNS(NS, tag);
@@ -204,9 +202,7 @@
     if (REWARDS[n] && !data.current.rewards.includes(n)) {
       data.current.rewards.push(n);
       save();
-      // "All 51" only when it really is every US state plus DC.
-      if (n === 51 && usCount() === 51) reward('All 51!', REWARDS[51]);
-      else reward(`${n} states!`, n === 51 ? 'Wow!' : REWARDS[n]);
+      reward(`${n} states!`, REWARDS[n]);
     }
   }
   function remove(code) {
@@ -338,7 +334,8 @@
     if (q.length === 2) push(list.find((s) => s.code.toLowerCase() === q));
     list.filter((s) => s.name.toLowerCase().startsWith(q)).forEach(push);
     list.filter((s) => s.name.toLowerCase().split(' ').some((w) => w.startsWith(q))).forEach(push);
-    return out.slice(0, 4);
+    // Room for "new": four states plus New Brunswick and Newfoundland.
+    return out.slice(0, 6);
   }
   findInput.addEventListener('input', () => {
     const q = findInput.value.trim();

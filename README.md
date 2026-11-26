@@ -157,7 +157,8 @@ turns green. Built for an 11" tablet or a laptop in landscape.
   always wins, and the count is today's states only. The switch is off every
   time the app opens. It appears once a map has been finished with
   **Start fresh** (or loaded from a file).
-- **Rewards** pop up at 5, 10, 15 … 50 states and at all 51, once per map.
+- **Rewards** pop up at 5, 10, 15 … 50 (states and provinces together), once
+  per map.
 - **Menu:** Start fresh, Save to file, Load file, Full screen, Clear history
   (erases the earlier maps on this device after a confirm; today's map stays).
 - **Keyboard:** Tab to a state, Enter adds it, Delete asks to remove it.
